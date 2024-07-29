@@ -1,41 +1,45 @@
-const express = require('express');
-const { MongoClient } = require('mongodb');
+const express = require("express");
+const { MongoClient } = require("mongodb");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
-const port = 3000;
-//test
-const cors = require('cors');
-app.use(cors());
-
-const url = 'mongodb+srv://nicokarmobin:6nlol4V6XXnO1NxM@crueltyfreepals.jw3bkwc.mongodb.net/?retryWrites=true&w=majority&appName=CrueltyFreePals';
-const dbName = 'mydatabase';
+const port = process.env.PORT || 3000;
+const url = process.env.MONGODB_URL;
+const dbName = process.env.DB_NAME;
 
 let db, collection;
 
 async function connectToMongoDB() {
-  const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+  const client = new MongoClient(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
   await client.connect();
-  console.log('Connected to MongoDB');
+  console.log("Connected to MongoDB");
   db = client.db(dbName);
-  collection = db.collection('mycollection');
+  collection = db.collection("mycollection");
 }
 
+app.use(cors());
 app.use(express.json());
 
 // Endpoint to search for documents by "line" field
-app.get('/search', async (req, res) => {
+app.get("/search", async (req, res) => {
   const { query } = req.query;
 
   if (!query) {
-    return res.status(400).send('Query parameter is required');
+    return res.status(400).send("Query parameter is required");
   }
 
   try {
-    const results = await collection.find({ line: { $regex: query, $options: 'i' } }).toArray();
+    const results = await collection
+      .find({ line: { $regex: query, $options: "i" } })
+      .toArray();
     res.json(results);
   } catch (err) {
-    console.error('Error:', err);
-    res.status(500).send('Internal Server Error');
+    console.error("Error:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
 
